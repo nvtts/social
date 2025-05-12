@@ -3,7 +3,7 @@
 {
     "name": "Mail Disable Follower Notification",
     "summary": "Don't send emails by default when adding followers to records",
-    "version": "17.0.1.0.0",
+    "version": "16.0.1.0.0",
     "category": "Productivity/Discuss",
     "website": "https://github.com/OCA/social",
     "author": "Sygel, Odoo Community Association (OCA)",

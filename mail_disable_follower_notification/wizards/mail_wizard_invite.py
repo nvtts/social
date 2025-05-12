@@ -7,4 +7,6 @@ from odoo import fields, models
 class MailWizardInvite(models.TransientModel):
     _inherit = "mail.wizard.invite"
 
-    notify = fields.Boolean(default=False)
+    send_mail = fields.Boolean(
+        default=False,
+    )
