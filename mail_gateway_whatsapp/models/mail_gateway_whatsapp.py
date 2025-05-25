@@ -10,6 +10,7 @@ from io import StringIO
 
 import requests
 import requests_toolbelt
+import re
 
 from odoo import _, models
 from odoo.exceptions import UserError
@@ -352,7 +353,13 @@ class MailGatewayWhatsappService(models.AbstractModel):
         }
 
     def _get_author(self, gateway, update):
-        author_id = update.get("messages")[0].get("from")
+        wa_from = update.get("messages")[0].get("from")
+        author_id = self._normalize_whatsapp_number(wa_from)
+        contact_name = next((
+            c['profile']['name']
+            for c in update.get('contacts', [])
+            if c.get('wa_id') == wa_from
+        ), None) or 'WhatsApp User'
         if author_id:
             gateway_partner = self.env["res.partner.gateway.channel"].search(
                 [
@@ -365,6 +372,12 @@ class MailGatewayWhatsappService(models.AbstractModel):
             partner = self.env["res.partner"].search(
                 [("phone_sanitized", "=", "+" + str(author_id))]
             )
+            if not partner:
+                partner = self.env['res.partner'].create({
+                    'name':           _("%s WhatsApp %s") % (contact_name, author_id),  # ex: “WhatsApp User 99991234”
+                    'phone':          '+' + author_id,
+                    'phone_sanitized':'+' + author_id
+                })
             if partner:
                 self.env["res.partner.gateway.channel"].create(
                     {
@@ -402,3 +415,17 @@ class MailGatewayWhatsappService(models.AbstractModel):
         # This hook has been created in order to add a proxy if needed.
         # By default, it does nothing.
         return {}
+
+    def _normalize_whatsapp_number(self, raw):
+        """Remove tudo que não for dígito e, se tiver 12 dígitos e o local começar por 7/8/9,
+        insere o nono dígito (9) na frente do local."""
+        # 1) só deixa dígitos
+        nums = re.sub(r'\D', '', raw or '')
+        # 2) se tiver exatamente 12 dígitos, pode faltar o nono local
+        if len(nums) == 12:
+            country, ddd, local = nums[:2], nums[2:4], nums[4:]
+            # 3) se o local começa em 7,8 ou 9, adiciona o '9' à esquerda
+            if local[0] in ('7', '8', '9'):
+                local = '9' + local
+                nums = country + ddd + local
+        return nums

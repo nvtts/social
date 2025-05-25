@@ -66,7 +66,7 @@ class GatewayController(Controller):
                     ("Content-Type", "application/json"),
                 ],
             )
-        _logger.debug(
+        _logger.info(
             "Received message for token %s with usage %s: %s",
             token,
             usage,
