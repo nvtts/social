@@ -175,6 +175,7 @@ Contributors
   * Ernesto Tejeda
   * Rafael Blasco
   * Alexandre Díaz
+  * Carlos Roca
 
 * XCG Consulting, part of `Orbeet <https://orbeet.io>`_:
 
