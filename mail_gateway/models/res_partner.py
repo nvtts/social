@@ -45,7 +45,8 @@ class ResPartner(models.Model):
                             ]
                         ),
                     ),
-                ]
+                ],
+                order="last_message_date desc"
             )
         return channels
 

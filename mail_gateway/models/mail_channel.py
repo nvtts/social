@@ -25,6 +25,20 @@ class MailChannel(models.Model):
         string="Gateway related Token",
         required=False,
     )
+    last_message_date = fields.Datetime(
+        string="Last Message Date",
+        compute="_compute_last_message_date",
+        store=True,
+        help="Date of the most recent message in this channel"
+    )
+
+    @api.depends('message_ids.date')
+    def _compute_last_message_date(self):
+        for channel in self:
+            if channel.message_ids:
+                channel.last_message_date = max(channel.message_ids.mapped('date'))
+            else:
+                channel.last_message_date = channel.create_date
 
     def channel_info(self):
         result = super().channel_info()
@@ -69,6 +83,12 @@ class MailChannel(models.Model):
                 }
             ).send_gateway()
         return message
+
+    def _message_post_after_hook(self, message, msg_vals):
+        result = super()._message_post_after_hook(message, msg_vals)
+        if message.date:
+            self.last_message_date = message.date
+        return result
 
     def _message_update_content_after_hook(self, message):
         self.ensure_one()

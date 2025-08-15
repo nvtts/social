@@ -58,6 +58,7 @@ registerPatch({
                     domain,
                     fields,
                     limit,
+                    order: "last_message_date desc",
                 },
             });
             return this.insert(
