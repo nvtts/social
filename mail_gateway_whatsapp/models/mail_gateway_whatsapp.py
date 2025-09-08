@@ -59,7 +59,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
     def _get_channel_vals(self, gateway, token, update):
         result = super()._get_channel_vals(gateway, token, update)
         for contact in update.get("contacts", []):
-            if contact["wa_id"] == token:
+            normalized_wa_id = self._normalize_whatsapp_number(contact["wa_id"])
+            if normalized_wa_id == token:
                 result["name"] = contact["profile"]["name"]
                 continue
         return result
@@ -358,7 +359,7 @@ class MailGatewayWhatsappService(models.AbstractModel):
         contact_name = next((
             c['profile']['name']
             for c in update.get('contacts', [])
-            if c.get('wa_id') == wa_from
+            if self._normalize_whatsapp_number(c.get('wa_id')) == author_id
         ), None) or 'WhatsApp User'
         if author_id:
             gateway_partner = self.env["res.partner.gateway.channel"].search(
@@ -404,7 +405,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
 
     def _get_author_vals(self, gateway, author_id, update):
         for contact in update.get("contacts", []):
-            if contact["wa_id"] == author_id:
+            normalized_wa_id = self._normalize_whatsapp_number(contact["wa_id"])
+            if normalized_wa_id == author_id:
                 return {
                     "name": contact.get("profile", {}).get("name", "Anonymous"),
                     "gateway_id": gateway.id,
