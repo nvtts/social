@@ -84,6 +84,12 @@ registerPatch({
                 }
                 return this._super();
             },
+            sort: [
+                ['truthy-first', 'thread'],
+                ['truthy-first', 'channel.last_message_date'],
+                ['most-recent-first', 'channel.last_message_date'],
+                ['greater-first', 'channel.id'],
+            ],
         },
         orderedCategoryItems: {
             compute() {
