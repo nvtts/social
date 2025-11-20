@@ -2,7 +2,8 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class MailMessage(models.Model):
@@ -83,11 +84,19 @@ class MailMessage(models.Model):
         return result
 
     def _send_to_gateway_thread(self, gateway_channel_id):
-        chat_id = gateway_channel_id.gateway_id._get_channel_id(
-            gateway_channel_id.gateway_token
+        gateway = gateway_channel_id.gateway_id
+        GatewayModel = self.env["mail.gateway.%s" % gateway.gateway_type]
+        channel = GatewayModel._get_channel(
+            gateway, gateway_channel_id.gateway_token, update=False
         )
-        channel = self.env["mail.channel"].browse(chat_id)
-        channel.message_post(**self._get_gateway_thread_message_vals())
+        if not channel:
+            raise UserError(
+                _(
+                    "No gateway channel found for this contact/token. "
+                    "Start a conversation or configure the channel before sending."
+                )
+            )
+        channel.sudo().message_post(**self._get_gateway_thread_message_vals())
         if not self.gateway_type:
             self.gateway_type = gateway_channel_id.gateway_id.gateway_type
         self.env["mail.notification"].create(

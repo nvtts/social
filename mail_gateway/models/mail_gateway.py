@@ -50,6 +50,7 @@ class MailGateway(models.Model):
     def _get_channel_id(self, chat_token):
         return (
             self.env["mail.channel"]
+            .sudo()
             .search(
                 [
                     ("gateway_channel_token", "=", str(chat_token)),
