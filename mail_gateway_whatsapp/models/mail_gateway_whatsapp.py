@@ -62,6 +62,8 @@ class MailGatewayWhatsappService(models.AbstractModel):
             if contact["wa_id"] == token:
                 result["name"] = contact["profile"]["name"]
                 continue
+        if not result.get("name"):
+            result["name"] = "WhatsApp %s" % token
         return result
 
     def _receive_update(self, gateway, update):
@@ -370,7 +372,9 @@ class MailGatewayWhatsappService(models.AbstractModel):
             if gateway_partner:
                 return gateway_partner.partner_id
             partner = self.env["res.partner"].search(
-                [("phone_sanitized", "=", "+" + str(author_id))]
+                [("phone_sanitized", "=", "+" + str(author_id))],
+                order="id asc",
+                limit=1,
             )
             if not partner:
                 partner = self.env['res.partner'].create({
